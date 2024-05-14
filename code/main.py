@@ -1,7 +1,7 @@
 import pygame
-import sys
+import sys, random, math
 from paths import cesty
-import random
+
 
 pygame.init()
 
@@ -51,6 +51,13 @@ while curr_numy < max_numy:
     numerationsy.append(curr_numy)
     curr_numy += 48
 
+def is_position_free(new_x, new_y, balls):
+    for ball in balls:
+        ball_rect = ball[1]
+        if ball_rect.collidepoint(new_x, new_y):
+            return False
+    return True
+
 def player_ball_choice():
     global player_ball_path
     player_ball_path = random.choice(('red_ball.png','green_ball.png','blue_ball.png','yellow_ball.png'))
@@ -85,25 +92,29 @@ while True:
             if player_ball_path == ball[4]:
                 balls.remove(ball)
             else:
-                # Determine the collision point along the x-axis
-                if player_ball_rect.centerx < ball[1].left:
-                    collision_x = ball[1].left - player_ball_rect.width // 2
-                elif player_ball_rect.centerx > ball[1].right:
-                    collision_x = ball[1].right + player_ball_rect.width // 2
+                player_center = player_ball_rect.center
+                ball_center = ball[1].center
+                center_center =  math.sqrt((player_center[0] - ball_center[0])**2 + (player_center[1] - ball_center[1])**2)
+                center_left = math.sqrt((player_center[0] - ball[1].left)**2 + (player_center[1] - ball_center[1])**2)
+                center_right = math.sqrt((player_center[0] - ball[1].right)**2 + (player_center[1] - ball_center[1])**2)
+
+                if (center_center < center_left) and (center_center < center_right):
+                    x = ball[1].left
+                    y = ball[1].bottom
+                    new_rect = player_ball_img.get_rect(midtop=(x + player_ball_rect.width // 2, y))
+                elif (center_left < center_center) and (center_left < center_right):
+                    x = ball[1].left - player_ball_rect.width
+                    y = ball[1].top
+                    new_rect = player_ball_img.get_rect(topright=(x + player_ball_rect.width, y))
                 else:
-                    collision_x = player_ball_rect.centerx
-
-                # Adjust the y-coordinate based on whether the player's ball is above or below the other ball
-                y = ball[1].top - player_ball_rect.height if player_ball_rect.centery < ball[1].top else ball[1].bottom
-
-                # Set the x-coordinate of the player's ball to the collision point
-                x = collision_x
-
-                # Create a new rectangle for the player's ball at the collision point
-                new_rect = player_ball_img.get_rect(top=y, left=x)
-
-                # Append the new position and rectangle to the balls list
-                balls.append([player_ball_img, new_rect, x, y, player_ball_path])
+                    x = ball[1].right
+                    y = ball[1].top
+                    new_rect = player_ball_img.get_rect(topleft=(x, y))
+               
+                if is_position_free(x,y, balls):
+                    balls.append([player_ball_img, new_rect, x, y, player_ball_path])
+                else:
+                    print("Position not free, skipping adding the new ball")
                 
             pygame.mouse.set_pos(816//2, 586)
             player_ball_img = player_ball_choice()
