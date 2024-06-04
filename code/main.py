@@ -67,7 +67,7 @@ def player_ball_choice():
 
 player_ball_img = player_ball_choice()
 
-pygame.mouse.set_pos(816//2, 586)
+pygame.mouse.set_pos(816//2, 386)
 
 while True:   
     for event in pygame.event.get():
@@ -82,8 +82,15 @@ while True:
         screen.blit(ball[0],(ball[2],ball[3]))
     
     mx,my = pygame.mouse.get_pos()
+
+
     player_ball_rect = player_ball_img.get_rect(center=(mx,my))
     screen.blit(player_ball_img,(mx-(player_ball_img.get_width()/2),my-(player_ball_img.get_height()/2)))
+
+    
+    canon_to_mouse = math.sqrt((((816/2)-(cannon.get_width()/2)) - mx)**2 + ((624-125) - my)**2)
+    cannon = pygame.transform.rotate(cannon, canon_to_mouse)
+    screen.blit(cannon,((816/2)-(cannon.get_width()/2),624-125))
 
     for ball in balls[:]:
         ball_center = ball[1].center
@@ -114,7 +121,12 @@ while True:
                 if is_position_free(x,y, balls):
                     balls.append([player_ball_img, new_rect, x, y, player_ball_path])
                 else:
-                    print("Position not free, skipping adding the new ball")
+                    x = ball[1].left
+                    y = ball[1].bottom
+                    new_rect = player_ball_img.get_rect(midtop=(x + player_ball_rect.width // 2, y))
+                    balls.append([player_ball_img, new_rect, x, y, player_ball_path])
+
+
                 
             pygame.mouse.set_pos(816//2, 586)
             player_ball_img = player_ball_choice()
